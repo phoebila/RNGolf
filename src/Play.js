@@ -8,6 +8,9 @@ class Play extends Phaser.Scene {
         this.SHOT_VELOCITY_X = 200
         this.SHOT_VELOCITY_Y_MIN = 700
         this.SHOT_VELOCITY_Y_MAX = 1100
+        this.score = 0
+
+        this.shots = 0
 
     }
 
@@ -21,8 +24,27 @@ class Play extends Phaser.Scene {
     }
 
     create() {
+
+        // display score number
+        let scoreConfig = {
+            fontFamily: 'arial',
+            fontSize: '28px',
+            backgroundColor: '#cf5f8d',
+            color: '#fff',
+            align: 'right',
+            padding: {
+            top: 5,
+            bottom: 5,
+            },
+            fixedWidth: 0
+        }
+
         // add background grass
         this.grass = this.add.image(0, 0, 'grass').setOrigin(0)
+
+        this.text = this.add.text(width/10, height/20, `score: ${this.score}`, scoreConfig)
+        this.shotCount = this.add.text(width/10, (height/20) + 64, `shots: ${this.shots}`, scoreConfig)
+
 
         // add cup
         this.cup = this.physics.add.sprite(width/2, height/10, 'cup')
@@ -45,6 +67,10 @@ class Play extends Phaser.Scene {
         let wallB = this.physics.add.sprite(0, height / 2, 'wall')
         wallB.setX(Phaser.Math.Between(0 + wallB.width/2, width - wallB.width/2))
         wallB.setImmovable(true)
+        wallB.setVelocityX(-500)
+        wallB.setBounce(1)
+        wallB.body.setCollideWorldBounds(true)
+
 
         this.walls = this.add.group([wallA, wallB])
 
@@ -56,6 +82,9 @@ class Play extends Phaser.Scene {
 
         // add pointer input
         this.input.on('pointerdown', (pointer) => {
+            this.shots++
+            this.shotCount.text = `shots: ${this.shots}`
+
             let shotDir = pointer.y  <= this.ball.y ? 1 : -1
             this.ball.body.setVelocityX(Phaser.Math.Between(this.SHOT_VELOCITY_X, -this.SHOT_VELOCITY_X))
             this.ball.body.setVelocityY(Phaser.Math.Between(this.SHOT_VELOCITY_Y_MIN, this.SHOT_VELOCITY_Y_MAX) * shotDir)
@@ -63,7 +92,14 @@ class Play extends Phaser.Scene {
 
         // cup/ball collision
         this.physics.add.collider(this.ball, this.cup, (ball, cup) => {
-            ball.destroy()
+            this.score++
+            ball.setPosition(width /2, height - height / 10)
+            ball.setVelocityX(0)
+            ball.setVelocityY(0)
+            this.text.text = `score: ${this.score}`
+
+            
+            // this.scene.start('playScene') 
         })
 
         // ball/wall collision
@@ -74,15 +110,13 @@ class Play extends Phaser.Scene {
     }
 
     update() {
-
-
     }
 }
 /*
 CODE CHALLENGE
 Try to implement at least 3/4 of the following features during the remainder of class (hint: each takes roughly 15 or fewer lines of code to implement):
-[ ] Add ball reset logic on successful shot
+[ - ] Add ball reset logic on successful shot
 [ ] Improve shot logic by making pointer’s relative x-position shoot the ball in correct x-direction
-[ ] Make one obstacle move left/right and bounce against screen edges
-[ ] Create and display shot counter, score, and successful shot percentage
+[ - ] Make one obstacle move left/right and bounce against screen edges
+[ - ] Create and display shot counter, score, and successful shot percentage
 */
